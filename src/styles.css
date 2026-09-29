@@ -422,6 +422,8 @@ p {
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
+  line-height: 1.3;
+  max-width: calc(100% - 26px);
   padding: 5px 8px;
 }
 .like-button {
@@ -463,6 +465,17 @@ p {
 .product-info strong {
   font-size: 14px;
   grid-column: 1;
+}
+.product-price {
+  grid-column: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.product-price del {
+  color: var(--steel);
+  font-size: 12px;
+  font-weight: 500;
 }
 .add-button {
   grid-column: 2;

@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowRight, Check, ChevronDown, Heart, Menu, ShoppingBag, Truck, ShieldCheck, CreditCard, X, Minus, Plus, MessageCircle, Ruler, PackageCheck } from 'lucide-react'
+import barcelonaImage from './assets/barcelona 1.png'
+import barcelonaTwoImage from './assets/barcelona 2.png'
 import nacionalImage from './assets/nacional.png'
+import psgImage from './assets/psg.png'
 import './styles.css'
 
 const WHATSAPP_NUMBER = '573136171666'
 
 const products = [
-  { id: 1, name: 'Atlético Nacional', type: 'Camisa titular', price: 45000, category: 'Nuevas', league: 'Liga BetPlay Dimayor', color: 'Navy', image: nacionalImage, badge: 'Nuevo', sizes: ['S', 'M', 'L', 'XL'], stock: 12, description: 'Camiseta titular inspirada en Atlético Nacional, con los colores verde y blanco del Verdolaga. Ideal para alentar al equipo dentro y fuera de la cancha.', details: ['Tela deportiva liviana', 'Cuello reforzado', 'Corte regular unisex'] },
-  { id: 2, name: 'Ascenso', type: 'Camisa alternativa', price: 65000, category: 'Nuevas', league: 'Liga MX', color: 'Cream', image: '/assets/cancha-90-product-cream.png', sizes: ['S', 'M', 'L'], stock: 8, description: 'Contraste, textura y carácter en una pieza que funciona igual de bien en la tribuna o en la calle.', details: ['Tela de secado rápido', 'Panel frontal texturizado', 'Corte regular unisex'] },
-  { id: 3, name: 'Legado', type: 'Edición especial', price: 65000, category: 'Especiales', league: 'LaLiga', color: 'Black', image: '/assets/cancha-90-product-black.png', badge: 'Más vendida', sizes: ['M', 'L', 'XL'], stock: 5, description: 'La edición especial para quienes entienden que una camiseta también puede guardar una historia.', details: ['Edición limitada', 'Textura técnica premium', 'Acabados de colección'] },
-  { id: 4, name: 'Distrito', type: 'Camisa retro', price: 65000, oldPrice: 89900, category: 'Retro', league: 'Premier League', color: 'Red', image: '/assets/cancha-90-product-red.png', badge: 'Oferta', sizes: ['S', 'M', 'L', 'XL'], stock: 16, description: 'Una silueta retro con el color y la energía de las noches largas de fútbol.', details: ['Cuello estilo clásico', 'Tela suave', 'Inspiración noventera'] },
-  { id: 5, name: 'Pórtico', type: 'Camisa de selección', price: 65000, category: 'Selecciones', league: 'Brasileirão Série A', color: 'Navy', image: '/assets/cancha-90-product-navy.png', sizes: ['S', 'M', 'L', 'XL'], stock: 10, description: 'Una selección de carácter limpio para representar tu pasión en cada partido.', details: ['Tela deportiva liviana', 'Escudo bordado', 'Corte regular unisex'] },
-  { id: 6, name: 'Norte', type: 'Camisa de selección', price: 65000, category: 'Selecciones', league: 'Major League Soccer', color: 'Cream', image: '/assets/cancha-90-product-cream.png', sizes: ['S', 'M', 'L'], stock: 7, description: 'Una pieza versátil para jugar, viajar y llevar el fútbol contigo.', details: ['Tela de secado rápido', 'Panel frontal texturizado', 'Corte regular unisex'] },
-  { id: 7, name: 'Pulso', type: 'Camisa titular', price: 65000, category: 'Nuevas', league: 'Primera División de Chile', color: 'Black', image: '/assets/cancha-90-product-black.png', sizes: ['M', 'L', 'XL'], stock: 9, description: 'Negro técnico y detalles vivos para las noches que se juegan hasta el final.', details: ['Textura técnica premium', 'Cuello reforzado', 'Edición limitada'] },
-  { id: 8, name: 'Clásico', type: 'Camisa retro', price: 65000, category: 'Retro', league: 'Liga Profesional Argentina', color: 'Red', image: '/assets/cancha-90-product-red.png', sizes: ['S', 'M', 'L', 'XL'], stock: 11, description: 'Una silueta de archivo para quienes prefieren el fútbol con memoria.', details: ['Cuello estilo clásico', 'Tela suave', 'Inspiración noventera'] },
+  { id: 1, name: 'Atlético Nacional', type: 'Camisa titular', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'Liga BetPlay Dimayor', color: 'Navy', image: nacionalImage, badge: 'Nuevo', sizes: ['S', 'M', 'L', 'XL'], stock: 12, description: 'Camiseta titular inspirada en Atlético Nacional, con los colores verde y blanco del Verdolaga. Ideal para alentar al equipo dentro y fuera de la cancha.', details: ['Tela deportiva liviana', 'Cuello reforzado', 'Corte regular unisex'] },
+  { id: 2, name: 'Paris Saint-Germain', type: 'Camiseta local (Home) · Temporada 2026/27', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'Ligue 1', image: psgImage, badge: 'Temporada 2026/27', sizes: ['S', 'M', 'L'], stock: 8, description: 'Lleva la auténtica identidad parisina con la equipación oficial de local del PSG para la temporada 2026/27. Su base en azul Old Royal recupera la esencia clásica del club y se combina con un panel central de la franja Hechter más ancho que en años anteriores. Esta edición alinea verticalmente el escudo del Paris Saint-Germain y el Swoosh de Nike en el centro del pecho. Está confeccionada con tejido técnico microperforado de alta transpirabilidad e incluye Qatar Airways al frente y el logo urbano de Snipes en la zona lumbar baja.', details: ['Camiseta local oficial · Temporada 2026/27', 'Azul Old Royal y franja Hechter central más ancha', 'Escudo y Swoosh centrados · Qatar Airways y Snipes'] },
+  { id: 9, name: 'FC Barcelona Retro 2026', type: 'Camisa visitante · Edición especial retro', price: 65000, oldPrice: 75000, category: 'Retro', league: 'LaLiga', color: 'Cream', image: barcelonaImage, badge: 'Edición 2026', sizes: ['S', 'M', 'L', 'XL'], stock: 10, description: 'Edición especial retro lanzada en 2026, inspirada en la mítica camiseta visitante del FC Barcelona de las temporadas 2001/02 y 2002/03. Su base crema/oro y su franja vertical central azulgrana evocan el diseño original, junto con los detalles oscuros del cuello y las mangas. Una reinterpretación moderna que combina tecnología textil actual con la nostalgia de inicios de siglo.', details: ['Lanzamiento: 2026', 'Inspirada en la visitante de 2001/02 y 2002/03', 'Base crema/oro y franja central azulgrana'] },
+  { id: 10, name: 'FC Barcelona Local 2026/27', type: 'Camiseta local', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'LaLiga', image: barcelonaTwoImage, badge: 'Temporada 2026/27', sizes: ['S', 'M', 'L', 'XL'], stock: 10, description: 'Camiseta local oficial del FC Barcelona para la temporada 2026/27, lanzada a mediados de 2026. Su diseño texturizado en tonos azulgrana está inspirado en la fachada del renovado Spotify Camp Nou y representa una nueva era para el club. Incorpora tecnología textil de alto rendimiento para ofrecer frescura, comodidad y transpirabilidad dentro y fuera de la cancha, junto con los logos de Nike y Spotify.', details: ['Temporada 2026/27 · lanzamiento a mediados de 2026', 'Diseño inspirado en la fachada del Spotify Camp Nou', 'Logos Nike y Spotify'] },
 ]
 
 const leagues = ['Todas', ...new Set(products.map((product) => product.league))]
@@ -22,6 +21,7 @@ const leagueCountries = {
   'Liga BetPlay Dimayor': 'Colombia',
   'Liga MX': 'México',
   LaLiga: 'España',
+  'Ligue 1': 'Francia',
   'Premier League': 'Inglaterra',
   'Brasileirão Série A': 'Brasil',
   'Major League Soccer': 'Estados Unidos',
@@ -44,7 +44,7 @@ function App() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesCategory = category === 'Todas' || (category === 'Ofertas' && product.badge === 'Oferta') || (category === 'Retro' && product.category === 'Retro') || (category === 'Selecciones' && (product.id === 2 || product.id === 3)) || product.category === category
+      const matchesCategory = category === 'Todas' || (category === 'Ofertas' && product.oldPrice) || product.category === category
       const matchesLeague = league === 'Todas' || product.league === league
       return matchesCategory && matchesLeague
     })
@@ -80,7 +80,7 @@ function App() {
   }
 
   return <div className="site-shell">
-    <div className="announcement"><span>Envíos gratis desde $180.000</span><span className="announcement-dot">•</span><span>Compra segura en cada jugada</span></div>
+    <div className="announcement"><span>Envíos gratis desde $120.000</span><span className="announcement-dot">•</span><span>Compra segura en cada jugada</span></div>
     <header className="header">
       <button className="icon-button mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"><Menu size={22} /></button>
       <a className="wordmark" href="#inicio" aria-label="CANCHA 90 AXM inicio">CANCHA <strong>90</strong></a>
@@ -179,7 +179,7 @@ function LeagueDropdown({ options, value, onChange }) {
 }
 
 function ProductCard({ product, liked, onLike, onDetails, onAdd }) {
-  return <article className="product-card"><button className="product-image product-image-button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}><img src={product.image} alt={`Camisa ${product.name}`} />{product.badge && <span className="badge">{product.badge}</span>}<span className="quick-view">Ver detalles</span><span className="like-button" onClick={(event) => { event.stopPropagation(); onLike() }} aria-label="Añadir a favoritos"><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></span></button><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type} · {product.stock} disponibles</p></button><button className="add-button" onClick={onAdd} aria-label={`Añadir ${product.name}`}><Plus size={19} /></button><strong>{formatPrice(product.price)}</strong></div></article>
+  return <article className="product-card"><button className="product-image product-image-button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}><img src={product.image} alt={`Camisa ${product.name}`} />{product.badge && <span className="badge">{product.badge}</span>}<span className="quick-view">Ver detalles</span><span className="like-button" onClick={(event) => { event.stopPropagation(); onLike() }} aria-label="Añadir a favoritos"><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></span></button><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type} · {product.stock} disponibles</p></button><button className="add-button" onClick={onAdd} aria-label={`Añadir ${product.name}`}><Plus size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{formatPrice(product.price)}</strong></div></div></article>
 }
 
 function ProductDetail({ product, onClose, onAdd }) {
