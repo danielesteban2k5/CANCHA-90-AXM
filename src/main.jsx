@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowRight, Check, Heart, Menu, ShoppingBag, Truck, ShieldCheck, CreditCard, X, Minus, Plus, MessageCircle, Ruler, PackageCheck } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Heart, Menu, ShoppingBag, Truck, ShieldCheck, CreditCard, X, Minus, Plus, MessageCircle, Ruler, PackageCheck } from 'lucide-react'
+import nacionalImage from './assets/nacional.png'
 import './styles.css'
 
 const WHATSAPP_NUMBER = '573136171666'
 
 const products = [
-  { id: 1, name: 'Horizonte', type: 'Camisa titular', price: 65000, category: 'Nuevas', league: 'Liga BetPlay Dimayor', color: 'Navy', image: '/assets/cancha-90-product-navy.png', badge: 'Nuevo', sizes: ['S', 'M', 'L', 'XL'], stock: 12, description: 'Una camisa limpia y contundente, pensada para llevar la pasión todos los días dentro y fuera de la cancha.', details: ['Tela deportiva liviana', 'Cuello reforzado', 'Corte regular unisex'] },
+  { id: 1, name: 'Atlético Nacional', type: 'Camisa titular', price: 45000, category: 'Nuevas', league: 'Liga BetPlay Dimayor', color: 'Navy', image: nacionalImage, badge: 'Nuevo', sizes: ['S', 'M', 'L', 'XL'], stock: 12, description: 'Camiseta titular inspirada en Atlético Nacional, con los colores verde y blanco del Verdolaga. Ideal para alentar al equipo dentro y fuera de la cancha.', details: ['Tela deportiva liviana', 'Cuello reforzado', 'Corte regular unisex'] },
   { id: 2, name: 'Ascenso', type: 'Camisa alternativa', price: 65000, category: 'Nuevas', league: 'Liga MX', color: 'Cream', image: '/assets/cancha-90-product-cream.png', sizes: ['S', 'M', 'L'], stock: 8, description: 'Contraste, textura y carácter en una pieza que funciona igual de bien en la tribuna o en la calle.', details: ['Tela de secado rápido', 'Panel frontal texturizado', 'Corte regular unisex'] },
   { id: 3, name: 'Legado', type: 'Edición especial', price: 65000, category: 'Especiales', league: 'LaLiga', color: 'Black', image: '/assets/cancha-90-product-black.png', badge: 'Más vendida', sizes: ['M', 'L', 'XL'], stock: 5, description: 'La edición especial para quienes entienden que una camiseta también puede guardar una historia.', details: ['Edición limitada', 'Textura técnica premium', 'Acabados de colección'] },
   { id: 4, name: 'Distrito', type: 'Camisa retro', price: 65000, oldPrice: 89900, category: 'Retro', league: 'Premier League', color: 'Red', image: '/assets/cancha-90-product-red.png', badge: 'Oferta', sizes: ['S', 'M', 'L', 'XL'], stock: 16, description: 'Una silueta retro con el color y la energía de las noches largas de fútbol.', details: ['Cuello estilo clásico', 'Tela suave', 'Inspiración noventera'] },
@@ -90,7 +91,25 @@ function App() {
     <main>
       <section className="hero" id="inicio"><div className="hero-copy"><p className="eyebrow red">FÚTBOL · ESTILO · ACTITUD</p><h1>VISTE TU <span>PASIÓN</span></h1><p className="hero-text">Camisas que cuentan historias. Para hoy, para siempre. Más que fútbol, es una forma de vivir.</p><div className="hero-cta"><a className="button button-lime" href="#coleccion">Ver colección <ArrowRight size={18} /></a><a className="text-link" href="#coleccion">Explorar camisas <ArrowRight size={15} /></a></div></div><div className="hero-notes"><span>MISMA<br />PASIÓN</span><span>NUEVAS<br />HISTORIAS</span></div><div className="hero-bottom"><div><Truck size={21} /><span><b>Envíos a todo el país</b><small>Rápidos y seguros</small></span></div><div><CreditCard size={21} /><span><b>Pagos coordinados</b><small>Directo por WhatsApp</small></span></div><div><ShieldCheck size={21} /><span><b>Compra protegida</b><small>Atención personalizada</small></span></div></div></section>
 
-      <section className="collection-section" id="coleccion"><div className="section-heading"><div><p className="eyebrow red">TODA LA COLECCIÓN</p><h2>CAMISAS Y SELECCIONES</h2></div><a href="#coleccion" className="view-all">Ver todas <ArrowRight size={15} /></a></div><div className="catalog-toolbar"><div className="category-row">{['Todas', 'Nuevas', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <button className={category === item ? 'category active' : 'category'} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div><div className="catalog-filters"><label><span>Liga</span><select value={league} onChange={(event) => setLeague(event.target.value)}>{leagues.map((item) => <option value={item} key={item}>{item}</option>)}</select></label><span className="results-count">{filteredProducts.length} {filteredProducts.length === 1 ? 'camisa encontrada' : 'camisas encontradas'}</span></div></div><div className="collection-layout"><div className="product-grid">{filteredProducts.length ? filteredProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} onAdd={() => addToCart(product)} />) : <div className="empty-results"><h3>No encontramos camisas</h3><p>Prueba otra combinación de liga o categoría.</p></div>}</div></div></section>
+      <section className="collection-section" id="coleccion">
+        <div className="section-heading">
+          <div><p className="eyebrow red">TODA LA COLECCIÓN</p><h2>CAMISAS Y SELECCIONES</h2></div>
+          <a href="#coleccion" className="view-all">Ver todas <ArrowRight size={15} /></a>
+        </div>
+        <div className="catalog-toolbar">
+          <div className="category-row">{['Todas', 'Nuevas', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <button className={category === item ? 'category active' : 'category'} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
+          <div className="catalog-filters">
+            <div className="league-filter">
+              <span id="league-filter-label">Liga</span>
+              <LeagueDropdown options={leagues} value={league} onChange={setLeague} />
+            </div>
+            <span className="results-count">{filteredProducts.length} {filteredProducts.length === 1 ? 'camisa encontrada' : 'camisas encontradas'}</span>
+          </div>
+        </div>
+        <div className="collection-layout">
+          <div className="product-grid">{filteredProducts.length ? filteredProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} onAdd={() => addToCart(product)} />) : <div className="empty-results"><h3>No encontramos camisas</h3><p>Prueba otra combinación de liga o categoría.</p></div>}</div>
+        </div>
+      </section>
 
       <section className="trust-section"><div><Truck size={25} /><strong>Envíos a todo el país</strong><span>Rápidos y seguros</span></div><div><CreditCard size={25} /><strong>Pagos coordinados</strong><span>Te atendemos por WhatsApp</span></div><div><ShieldCheck size={25} /><strong>Compra segura</strong><span>Tus datos protegidos</span></div></section>
       <section className="league-showcase"><div className="league-showcase-copy"><p className="eyebrow red">ELIGE TU LIGA</p><h2>COMPETICIONES REALES</h2><p>Explora camisas inspiradas en las principales ligas del fútbol mundial.</p><span className="league-count">08 LIGAS DISPONIBLES</span></div><div className="league-list">{leagues.filter((item) => item !== 'Todas').map((item, index) => <button key={item} onClick={() => { setLeague(item); setCategory('Todas'); window.location.hash = 'coleccion' }}><span className="league-number">0{index + 1}</span><span className="league-card-info"><strong>{item}</strong><small>{leagueCountries[item]}</small></span><ArrowRight size={19} /></button>)}</div></section>
@@ -101,6 +120,61 @@ function App() {
     {detailProduct && <ProductDetail product={detailProduct} onClose={() => setDetailProduct(null)} onAdd={addToCart} />}
     {drawerOpen && <CartDrawer cart={cart} cartCount={cartCount} cartTotal={cartTotal} onClose={() => setDrawerOpen(false)} onUpdate={updateQuantity} onCheckout={() => { setDrawerOpen(false); setCheckoutOpen(true) }} />}
     {checkoutOpen && <CheckoutModal customer={customer} setCustomer={setCustomer} cart={cart} cartTotal={cartTotal} onClose={() => setCheckoutOpen(false)} onSubmit={sendToWhatsApp} />}
+  </div>
+}
+
+function LeagueDropdown({ options, value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, options.indexOf(value)))
+  const triggerRef = useRef(null)
+  const optionRefs = useRef([])
+
+  useEffect(() => {
+    if (isOpen) optionRefs.current[activeIndex]?.focus()
+  }, [activeIndex, isOpen])
+
+  const openMenu = () => {
+    setActiveIndex(Math.max(0, options.indexOf(value)))
+    setIsOpen(true)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false)
+      triggerRef.current?.focus()
+      return
+    }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
+
+    event.preventDefault()
+    if (!isOpen) {
+      openMenu()
+      return
+    }
+
+    setActiveIndex((current) => {
+      if (event.key === 'Home') return 0
+      if (event.key === 'End') return options.length - 1
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      return (current + direction + options.length) % options.length
+    })
+  }
+
+  const chooseOption = (option) => {
+    onChange(option)
+    setIsOpen(false)
+    triggerRef.current?.focus()
+  }
+
+  return <div className="league-select" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false) }} onKeyDown={handleKeyDown}>
+    <button ref={triggerRef} className="league-select-trigger" type="button" aria-labelledby="league-filter-label" aria-haspopup="listbox" aria-expanded={isOpen} aria-controls="league-options" onClick={() => isOpen ? setIsOpen(false) : openMenu()}>
+      <span>{value}</span><ChevronDown size={17} aria-hidden="true" />
+    </button>
+    <div className="league-options" id="league-options" role="listbox" aria-label="Ligas" hidden={!isOpen}>
+      {options.map((option, index) => <button ref={(element) => { optionRefs.current[index] = element }} className="league-option" type="button" role="option" aria-selected={value === option} tabIndex={index === activeIndex ? 0 : -1} key={option} onFocus={() => setActiveIndex(index)} onClick={() => chooseOption(option)}>
+        <span>{option}</span>{value === option && <Check size={16} aria-hidden="true" />}
+      </button>)}
+    </div>
   </div>
 }
 

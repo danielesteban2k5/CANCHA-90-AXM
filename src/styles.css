@@ -387,6 +387,14 @@ p {
   background: var(--ivory);
   color: var(--navy);
   min-width: 0;
+  border: 1px solid rgba(8, 27, 51, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(8, 27, 51, 0.12);
 }
 .product-image {
   height: 290px;
@@ -418,12 +426,20 @@ p {
 }
 .like-button {
   position: absolute;
-  right: 11px;
-  top: 10px;
-  border: 0;
-  background: transparent;
+  right: 12px;
+  top: 12px;
+  border: 1px solid rgba(8, 27, 51, 0.12);
+  background: rgba(247, 245, 240, 0.94);
   color: var(--navy);
-  padding: 5px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.like-button:hover {
+  background: var(--ivory);
+  transform: scale(1.06);
 }
 .like-button.liked {
   color: var(--red);
@@ -460,6 +476,12 @@ p {
   place-items: center;
   align-self: start;
   color: var(--navy);
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.add-button:hover {
+  color: var(--ivory);
+  background: var(--navy);
+  border-color: var(--navy);
 }
 .editorial-card {
   background:
@@ -1633,25 +1655,104 @@ p {
   padding: 14px 0;
   margin-bottom: 20px;
 }
-.catalog-filters label {
+.catalog-filters .league-filter {
+  position: relative;
   display: grid;
   gap: 6px;
   min-width: 190px;
 }
-.catalog-filters label span {
+.catalog-filters .league-filter > span {
   color: var(--lime);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.catalog-filters select {
+.league-select {
+  position: relative;
+}
+.league-select-trigger {
+  width: 100%;
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   border: 1px solid rgba(247, 245, 240, 0.2);
   border-radius: 2px;
   background: #102b4a;
   color: var(--ivory);
   padding: 9px 12px;
-  font-size: 13px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.league-select-trigger:hover,
+.league-select-trigger[aria-expanded="true"] {
+  background: #153658;
+  border-color: rgba(247, 245, 240, 0.42);
+}
+.league-select-trigger:focus-visible,
+.league-option:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 2px;
+}
+.league-select-trigger svg {
+  flex: 0 0 auto;
+  transition: transform 0.18s ease;
+}
+.league-select-trigger[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.league-options {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 7px);
+  left: 0;
+  width: 100%;
+  max-height: min(330px, 60vh);
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid rgba(247, 245, 240, 0.16);
+  border-radius: 4px;
+  background: #0b2037;
+  box-shadow: 0 18px 36px rgba(2, 10, 20, 0.35);
+}
+.league-options[hidden] {
+  display: none;
+}
+.league-option {
+  width: 100%;
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ivory);
+  padding: 9px 11px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.league-option:hover,
+.league-option:focus-visible {
+  background: #173d65;
+  color: var(--ivory);
+}
+.league-option[aria-selected="true"] {
+  background: rgba(198, 227, 76, 0.12);
+  color: var(--lime);
 }
 .results-count {
   margin-left: auto;
@@ -1697,13 +1798,13 @@ p {
     align-items: stretch;
     flex-wrap: wrap;
   }
-  .catalog-filters label {
+  .catalog-filters .league-filter {
     flex: 1 1 145px;
     min-width: 0;
   }
-  .catalog-filters select {
+  .catalog-filters .league-select-trigger {
     width: 100%;
-    font-size: 12px;
+    font-size: 17px;
   }
   .results-count {
     flex-basis: 100%;
@@ -1738,7 +1839,7 @@ p {
   margin: 0;
   padding: 0;
 }
-.catalog-toolbar .catalog-filters label {
+  .catalog-toolbar .league-filter {
   min-width: 150px;
 }
 .catalog-toolbar .results-count {
@@ -1780,7 +1881,7 @@ p {
   .catalog-toolbar .catalog-filters {
     flex-wrap: nowrap;
   }
-  .catalog-toolbar .catalog-filters label {
+  .catalog-toolbar .league-filter {
     flex: 1 1 0;
   }
   .product-grid {
@@ -2103,11 +2204,11 @@ body {
     grid-template-columns: 1fr;
     gap: 9px;
   }
-  .catalog-toolbar .catalog-filters label {
+  .catalog-toolbar .league-filter {
     min-width: 0;
     width: 100%;
   }
-  .catalog-toolbar .catalog-filters select {
+  .catalog-toolbar .league-select-trigger {
     width: 100%;
   }
   .product-grid {
