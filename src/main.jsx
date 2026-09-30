@@ -16,6 +16,21 @@ const products = [
   { id: 10, name: 'FC Barcelona Local 2026/27', type: 'Camiseta local', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'LaLiga', image: barcelonaTwoImage, badge: 'Temporada 2026/27', sizes: ['S', 'M', 'L', 'XL'], stock: 10, description: 'Camiseta local oficial del FC Barcelona para la temporada 2026/27, lanzada a mediados de 2026. Su diseño texturizado en tonos azulgrana está inspirado en la fachada del renovado Spotify Camp Nou y representa una nueva era para el club. Incorpora tecnología textil de alto rendimiento para ofrecer frescura, comodidad y transpirabilidad dentro y fuera de la cancha, junto con los logos de Nike y Spotify.', details: ['Temporada 2026/27 · lanzamiento a mediados de 2026', 'Diseño inspirado en la fachada del Spotify Camp Nou', 'Logos Nike y Spotify'] },
 ]
 
+const capProducts = Array.from({ length: 4 }, (_, index) => ({
+  id: 101 + index,
+  name: 'Nombre de la gorra',
+  type: 'Descripción y disponibilidad pendientes',
+  price: 45000,
+  category: 'Gorras',
+  league: 'Gorras',
+  image: null,
+  sizes: [],
+  stock: 0,
+  description: 'Completa esta publicación con la información de la gorra.',
+  details: [],
+}))
+const allProducts = [...products, ...capProducts]
+
 const leagues = ['Todas', ...new Set(products.map((product) => product.league))]
 const leagueCountries = {
   'Liga BetPlay Dimayor': 'Colombia',
@@ -38,9 +53,25 @@ function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [detailProduct, setDetailProduct] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [liked, setLiked] = useState([])
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [liked, setLiked] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('cancha90-favorites') || '[]')
+      return Array.isArray(saved) ? saved : []
+    } catch {
+      return []
+    }
+  })
   const [notice, setNotice] = useState('')
   const [customer, setCustomer] = useState({ name: '', phone: '', city: '', address: '', notes: '' })
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('cancha90-favorites', JSON.stringify(liked))
+    } catch {
+      return
+    }
+  }, [liked])
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -52,6 +83,7 @@ function App() {
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+  const favoriteProducts = allProducts.filter((product) => liked.includes(product.id))
 
   const notify = (message) => { setNotice(message); window.setTimeout(() => setNotice(''), 2200) }
 
@@ -84,8 +116,8 @@ function App() {
     <header className="header">
       <button className="icon-button mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"><Menu size={22} /></button>
       <a className="wordmark" href="#inicio" aria-label="CANCHA 90 AXM inicio">CANCHA <strong>90</strong></a>
-      <nav className={`nav ${menuOpen ? 'nav-open' : ''}`}>{['Inicio', 'Camisas', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <a href={item === 'Inicio' ? '#inicio' : '#coleccion'} key={item} onClick={() => setMenuOpen(false)}>{item}</a>)}</nav>
-      <div className="header-actions"><button className="icon-button" aria-label="Favoritos"><Heart size={19} /></button><button className="bag-button" onClick={() => setDrawerOpen(true)} aria-label="Abrir carrito"><ShoppingBag size={20} /><span>{cartCount}</span></button></div>
+      <nav className={`nav ${menuOpen ? 'nav-open' : ''}`}>{['Inicio', 'Camisas', 'Gorras', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <a href={item === 'Inicio' ? '#inicio' : item === 'Gorras' ? '#gorras' : '#coleccion'} key={item} onClick={() => { setMenuOpen(false); if (item === 'Camisas') setCategory('Todas'); if (['Retro', 'Selecciones', 'Ofertas'].includes(item)) setCategory(item) }}>{item}</a>)}</nav>
+      <div className="header-actions"><button className="icon-button favorites-button" onClick={() => setFavoritesOpen(true)} aria-label={`Ver favoritos (${liked.length})`}><Heart size={19} />{liked.length > 0 && <span className="favorites-count">{liked.length}</span>}</button><button className="bag-button" onClick={() => setDrawerOpen(true)} aria-label="Abrir carrito"><ShoppingBag size={20} /><span>{cartCount}</span></button></div>
     </header>
 
     <main>
@@ -111,6 +143,8 @@ function App() {
         </div>
       </section>
 
+      <section className="caps-section" id="gorras"><div className="caps-heading"><p className="eyebrow lime">NUEVA CATEGORÍA</p><h2>GORRAS</h2></div><div className="cap-template-grid">{capProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} onAdd={() => addToCart(product)} />)}</div></section>
+
       <section className="trust-section"><div><Truck size={25} /><strong>Envíos a todo el país</strong><span>Rápidos y seguros</span></div><div><CreditCard size={25} /><strong>Pagos coordinados</strong><span>Te atendemos por WhatsApp</span></div><div><ShieldCheck size={25} /><strong>Compra segura</strong><span>Tus datos protegidos</span></div></section>
       <section className="league-showcase"><div className="league-showcase-copy"><p className="eyebrow red">ELIGE TU LIGA</p><h2>COMPETICIONES REALES</h2><p>Explora camisas inspiradas en las principales ligas del fútbol mundial.</p><span className="league-count">08 LIGAS DISPONIBLES</span></div><div className="league-list">{leagues.filter((item) => item !== 'Todas').map((item, index) => <button key={item} onClick={() => { setLeague(item); setCategory('Todas'); window.location.hash = 'coleccion' }}><span className="league-number">0{index + 1}</span><span className="league-card-info"><strong>{item}</strong><small>{leagueCountries[item]}</small></span><ArrowRight size={19} /></button>)}</div></section>
     </main>
@@ -119,6 +153,7 @@ function App() {
     {notice && <div className="toast"><Check size={17} /> {notice}</div>}
     {detailProduct && <ProductDetail product={detailProduct} onClose={() => setDetailProduct(null)} onAdd={addToCart} />}
     {drawerOpen && <CartDrawer cart={cart} cartCount={cartCount} cartTotal={cartTotal} onClose={() => setDrawerOpen(false)} onUpdate={updateQuantity} onCheckout={() => { setDrawerOpen(false); setCheckoutOpen(true) }} />}
+    {favoritesOpen && <FavoritesDrawer products={favoriteProducts} onClose={() => setFavoritesOpen(false)} onRemove={(id) => setLiked((current) => current.filter((item) => item !== id))} onDetails={(product) => { setFavoritesOpen(false); setDetailProduct(product) }} />}
     {checkoutOpen && <CheckoutModal customer={customer} setCustomer={setCustomer} cart={cart} cartTotal={cartTotal} onClose={() => setCheckoutOpen(false)} onSubmit={sendToWhatsApp} />}
   </div>
 }
@@ -179,17 +214,23 @@ function LeagueDropdown({ options, value, onChange }) {
 }
 
 function ProductCard({ product, liked, onLike, onDetails, onAdd }) {
-  return <article className="product-card"><button className="product-image product-image-button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}><img src={product.image} alt={`Camisa ${product.name}`} />{product.badge && <span className="badge">{product.badge}</span>}<span className="quick-view">Ver detalles</span><span className="like-button" onClick={(event) => { event.stopPropagation(); onLike() }} aria-label="Añadir a favoritos"><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></span></button><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type} · {product.stock} disponibles</p></button><button className="add-button" onClick={onAdd} aria-label={`Añadir ${product.name}`}><Plus size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{formatPrice(product.price)}</strong></div></div></article>
+  const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
+  return <article className="product-card"><div className="product-image"><button className="product-image-button" type="button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}>{product.image ? <img src={product.image} alt={`${product.type} ${product.name}`} /> : <span className="product-image-placeholder">Foto de la gorra</span>}<span className="quick-view">Ver detalles</span></button>{product.badge && <span className="badge">{product.badge}</span>}<button className={`like-button ${liked ? 'liked' : ''}`} type="button" onClick={onLike} aria-label={liked ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={liked}><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></button></div><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type}{product.stock > 0 ? ` · ${product.stock} disponibles` : ''}</p></button><button className="add-button" onClick={onAdd} disabled={!canPurchase} aria-label={`Añadir ${product.name}`}><Plus size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong></div></div></article>
 }
 
 function ProductDetail({ product, onClose, onAdd }) {
-  const [size, setSize] = useState(product.sizes[0])
+  const [size, setSize] = useState(product.sizes[0] ?? '')
   const [quantity, setQuantity] = useState(1)
-  return <div className="modal-backdrop" onClick={onClose}><section className="product-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Cerrar"><X size={21} /></button><div className="detail-image"><img src={product.image} alt={product.name} /></div><div className="detail-copy"><p className="eyebrow red">{product.category.toUpperCase()} · {product.stock} DISPONIBLES</p><h2>{product.name}</h2><p className="detail-type">{product.type}</p><div className="detail-price">{formatPrice(product.price)} {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div><p className="detail-description">{product.description}</p><div className="detail-meta"><span><PackageCheck size={17} /> Stock disponible</span><span><Truck size={17} /> Envío nacional</span></div><div className="size-label"><strong>Selecciona tu talla</strong><button className="size-guide"><Ruler size={14} /> Guía de tallas</button></div><div className="size-row">{product.sizes.map((item) => <button className={size === item ? 'size-button active' : 'size-button'} onClick={() => setSize(item)} key={item}>{item}</button>)}</div><div className="detail-actions"><div className="quantity"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus size={14} /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}><Plus size={14} /></button></div><button className="button button-lime add-detail" onClick={() => onAdd(product, size, quantity)}>Añadir al carrito <ShoppingBag size={17} /></button></div><ul className="detail-list">{product.details.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul></div></section></div>
+  const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
+  return <div className="modal-backdrop" onClick={onClose}><section className="product-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Cerrar"><X size={21} /></button><div className="detail-image">{product.image ? <img src={product.image} alt={product.name} /> : <span className="detail-image-placeholder">Foto de la gorra</span>}</div><div className="detail-copy"><p className="eyebrow red">{product.category.toUpperCase()} {product.stock > 0 ? `· ${product.stock} DISPONIBLES` : ''}</p><h2>{product.name}</h2><p className="detail-type">{product.type}</p><div className="detail-price">{product.price == null ? 'Precio pendiente' : formatPrice(product.price)} {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div><p className="detail-description">{product.description}</p>{canPurchase && <div className="detail-meta"><span><PackageCheck size={17} /> Stock disponible</span><span><Truck size={17} /> Envío nacional</span></div>}{product.sizes.length > 0 && <><div className="size-label"><strong>{product.category === 'Gorras' ? 'Ajuste' : 'Selecciona tu talla'}</strong>{product.category !== 'Gorras' && <button className="size-guide"><Ruler size={14} /> Guía de tallas</button>}</div><div className="size-row">{product.sizes.map((item) => <button className={size === item ? 'size-button active' : 'size-button'} onClick={() => setSize(item)} key={item}>{item}</button>)}</div></>}{canPurchase ? <div className="detail-actions"><div className="quantity"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus size={14} /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}><Plus size={14} /></button></div><button className="button button-lime add-detail" onClick={() => onAdd(product, size, quantity)}>Añadir al carrito <ShoppingBag size={17} /></button></div> : <p className="detail-pending">Completa foto, precio e inventario para habilitar la compra.</p>}{product.details.length > 0 && <ul className="detail-list">{product.details.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}</div></section></div>
 }
 
 function CartDrawer({ cart, cartCount, cartTotal, onClose, onUpdate, onCheckout }) {
   return <div className="drawer-backdrop" onClick={onClose}><aside className="cart-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-head"><div><p className="eyebrow lime">TU SELECCIÓN</p><h2>Carrito <span>({cartCount})</span></h2></div><button className="icon-button" onClick={onClose}><X size={21} /></button></div>{cart.length === 0 ? <div className="empty-cart"><ShoppingBag size={30} /><h3>Tu carrito está esperando</h3><p>Agrega una camisa y arma tu próxima jugada.</p><button className="button button-lime" onClick={onClose}>Seguir comprando</button></div> : <><div className="cart-items">{cart.map((item) => <div className="cart-item" key={`${item.id}-${item.size}`}><img src={item.image} alt={item.name} /><div><h3>{item.name}</h3><p>{item.type} · Talla {item.size}</p><strong>{formatPrice(item.price * item.quantity)}</strong><div className="quantity"><button onClick={() => onUpdate(item.id, item.size, -1)}><Minus size={13} /></button><span>{item.quantity}</span><button onClick={() => onUpdate(item.id, item.size, 1)}><Plus size={13} /></button></div></div></div>)}</div><div className="cart-summary"><div><span>Subtotal</span><strong>{formatPrice(cartTotal)}</strong></div><small>El envío y la forma de pago se coordinan por WhatsApp.</small><button className="button button-lime full-width" onClick={onCheckout}><MessageCircle size={17} /> Finalizar por WhatsApp</button></div></>}</aside></div>
+}
+
+function FavoritesDrawer({ products, onClose, onRemove, onDetails }) {
+  return <div className="drawer-backdrop" onClick={onClose}><aside className="cart-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-head"><div><p className="eyebrow red">TU LISTA</p><h2>Favoritos <span>({products.length})</span></h2></div><button className="icon-button" onClick={onClose} aria-label="Cerrar favoritos"><X size={21} /></button></div>{products.length === 0 ? <div className="empty-cart"><Heart size={30} /><h3>Aún no tienes favoritos</h3><p>Guarda productos con el corazón de cada tarjeta.</p><button className="button button-lime" onClick={onClose}>Seguir explorando</button></div> : <div className="cart-items">{products.map((product) => <article className="cart-item favorite-item" key={product.id}>{product.image ? <img src={product.image} alt={product.name} /> : <div className="favorite-image-placeholder">Foto pendiente</div>}<div><h3>{product.name}</h3><p>{product.type}</p><strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong><div className="favorite-item-actions"><button className="favorite-detail-button" onClick={() => onDetails(product)}>Ver detalles</button><button className="favorite-remove-button" onClick={() => onRemove(product.id)} aria-label={`Quitar ${product.name} de favoritos`}><X size={17} /></button></div></div></article>)}</div>}</aside></div>
 }
 
 function CheckoutModal({ customer, setCustomer, cart, cartTotal, onClose, onSubmit }) {
