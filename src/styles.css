@@ -190,7 +190,7 @@ a {
       rgba(8, 27, 51, 0.91) 40%,
       rgba(8, 27, 51, 0.15) 72%
     ),
-    url("/assets/cancha-90-hero.png") center/cover;
+    url("/assets/cancha-90-hero.webp") center/cover;
 }
 .hero-copy {
   max-width: 645px;
@@ -471,6 +471,14 @@ p {
   mix-blend-mode: multiply;
   transition: transform 0.45s;
 }
+.caps-section .product-image img {
+  object-position: center 70%;
+  transform: scale(1.12);
+  transform-origin: center bottom;
+}
+.caps-section .product-card:hover .product-image img {
+  transform: scale(1.16);
+}
 .product-image-placeholder {
   color: var(--steel);
   font-size: 12px;
@@ -588,7 +596,7 @@ p {
 .editorial-card {
   background:
     linear-gradient(180deg, rgba(8, 27, 51, 0.28), rgba(8, 27, 51, 0.92)),
-    url("/assets/cancha-90-hero.png") center/cover;
+    url("/assets/cancha-90-hero.webp") center/cover;
   min-height: 375px;
   padding: 25px 18px;
   display: flex;
@@ -1017,7 +1025,7 @@ p {
         rgba(8, 27, 51, 0.98) 0%,
         rgba(8, 27, 51, 0.72) 74%
       ),
-      url("/assets/cancha-90-hero.png") 68% center/cover;
+      url("/assets/cancha-90-hero.webp") 68% center/cover;
   }
   .hero h1 {
     font-size: 70px;
@@ -1275,6 +1283,13 @@ p {
   object-position: center;
   mix-blend-mode: multiply;
 }
+.product-modal-cap .detail-image img {
+  object-fit: cover;
+  object-position: center bottom;
+  mix-blend-mode: normal;
+  transform: scale(1.3);
+  transform-origin: center bottom;
+}
 .detail-image-placeholder {
   width: 100%;
   height: 100%;
@@ -1346,6 +1361,21 @@ p {
   align-items: center;
   font-size: 12px;
   margin-bottom: 10px;
+}
+.cap-adjustment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(8, 27, 51, 0.13);
+  font-size: 14px;
+}
+.cap-adjustment span {
+  color: var(--steel);
+  font-size: 13px;
+  text-align: right;
 }
 .size-guide {
   position: relative;
@@ -1585,6 +1615,20 @@ p {
     max-height: none;
     object-fit: contain;
   }
+  .product-modal-cap .detail-image {
+    aspect-ratio: 0.82;
+    height: auto;
+    overflow: hidden;
+  }
+  .product-modal-cap .detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    mix-blend-mode: normal;
+    transform: scale(1.3);
+    transform-origin: center bottom;
+  }
   .detail-copy {
     padding: 30px 22px 28px;
   }
@@ -1622,7 +1666,7 @@ p {
 .hero {
   background:
     linear-gradient(90deg, rgba(8, 27, 51, 0.3), rgba(8, 27, 51, 0)),
-    url("/src/assets/cancha-90-hero.png") center top/cover no-repeat,
+    url("/assets/cancha-90-hero.webp") center top/cover no-repeat,
     #081b33 !important;
 }
 .product-image-button {
@@ -1673,7 +1717,7 @@ p {
   .hero {
     background:
       linear-gradient(180deg, rgba(8, 27, 51, 0.42), rgba(8, 27, 51, 0.1)),
-      url("/assets/cancha-90-hero.png") 68% top/cover no-repeat,
+      url("/assets/cancha-90-hero.webp") 68% top/cover no-repeat,
       #081b33 !important;
   }
   .product-image-button,

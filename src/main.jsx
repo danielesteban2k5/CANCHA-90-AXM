@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowRight, Check, ChevronDown, Heart, Menu, ShoppingBag, Truck, ShieldCheck, CreditCard, X, Minus, Plus, MessageCircle, Ruler, PackageCheck } from 'lucide-react'
-import barcelonaImage from './assets/barcelona 1.png'
-import barcelonaTwoImage from './assets/barcelona 2.png'
-import nacionalImage from './assets/nacional.png'
-import psgImage from './assets/psg.png'
+import barcelonaImage from './assets/barcelona 1.webp'
+import barcelonaTwoImage from './assets/barcelona 2.webp'
+import nacionalImage from './assets/nacional.webp'
+import psgImage from './assets/psg.webp'
 import './styles.css'
 
 const WHATSAPP_NUMBER = '573136171666'
@@ -17,19 +17,22 @@ const products = [
   { id: 10, name: 'FC Barcelona Local 2026/27', type: 'Camiseta local', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'LaLiga', image: barcelonaTwoImage, badge: 'Temporada 2026/27', sizes: ['S', 'M', 'L', 'XL'], stock: 10, description: 'Camiseta local oficial del FC Barcelona para la temporada 2026/27, lanzada a mediados de 2026. Su diseño texturizado en tonos azulgrana está inspirado en la fachada del renovado Spotify Camp Nou y representa una nueva era para el club. Incorpora tecnología textil de alto rendimiento para ofrecer frescura, comodidad y transpirabilidad dentro y fuera de la cancha, junto con los logos de Nike y Spotify.', details: ['Temporada 2026/27 · lanzamiento a mediados de 2026', 'Diseño inspirado en la fachada del Spotify Camp Nou', 'Logos Nike y Spotify'] },
 ]
 
-const capProducts = Array.from({ length: 4 }, (_, index) => ({
-  id: 101 + index,
-  name: 'Nueva gorra',
-  type: 'Detalles y disponibilidad próximamente',
-  price: null,
-  category: 'Gorras',
-  league: 'Gorras',
-  image: null,
-  sizes: [],
-  stock: 0,
-  description: 'Pronto encontrarás más detalles sobre esta gorra.',
-  details: [],
-}))
+const capImages = import.meta.glob('./assets/Gorras/*.{jpeg,jpg,png,webp}', { eager: true, import: 'default' })
+const capProducts = Object.entries(capImages)
+  .sort(([firstPath], [secondPath]) => firstPath.localeCompare(secondPath, 'es', { numeric: true }))
+  .map(([imagePath, image], index) => ({
+    id: imagePath,
+    name: `Gorra ${String(index + 1).padStart(2, '0')}`,
+    type: 'Gorra · Ajuste y disponibilidad por confirmar',
+    price: 45000,
+    category: 'Gorras',
+    league: 'Gorras',
+    image,
+    sizes: [],
+    stock: 0,
+    description: 'Modelo de gorra de colección. Consulta el tipo de ajuste y la disponibilidad antes de comprar.',
+    details: ['Precio fijo: $45.000', 'Ajuste y talla: confirmar según el modelo', 'Envío nacional: tarifa según ciudad'],
+  }))
 const allProducts = [...products, ...capProducts]
 const productCategories = [...new Set(products.map((product) => product.category))]
 const categories = ['Todas', ...productCategories, ...(products.some((product) => product.oldPrice) ? ['Ofertas'] : [])]
@@ -51,7 +54,20 @@ const formatPrice = (value) => `$${value.toLocaleString('es-CO')}`
 function App() {
   const [category, setCategory] = useState('Todas')
   const [league, setLeague] = useState('Todas')
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('cancha90-cart') || '[]')
+      return Array.isArray(saved) ? saved.flatMap((item) => {
+        if (!item || typeof item !== 'object') return []
+        const product = products.find((entry) => entry.id === item.id)
+        if (!product || !product.sizes.includes(item.size) || !Number.isFinite(item.quantity) || item.quantity < 1) return []
+        const quantity = Math.min(Math.floor(item.quantity), product.stock)
+        return quantity ? [{ ...product, size: item.size, quantity }] : []
+      }) : []
+    } catch {
+      return []
+    }
+  })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [detailProduct, setDetailProduct] = useState(null)
@@ -75,6 +91,14 @@ function App() {
       return
     }
   }, [liked])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('cancha90-cart', JSON.stringify(cart))
+    } catch {
+      return
+    }
+  }, [cart])
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -153,7 +177,7 @@ function App() {
 
       <section className="caps-section" id="gorras">
         <div className="caps-heading">
-          <p className="eyebrow lime">PRÓXIMAMENTE</p>
+          <p className="eyebrow lime">NUEVOS MODELOS</p>
           <h2>GORRAS</h2>
         </div>
         <div className="cap-template-grid">{capProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} />)}</div>
@@ -163,7 +187,7 @@ function App() {
       <section className="league-showcase"><div className="league-showcase-copy"><p className="eyebrow red">ELIGE TU LIGA</p><h2>COMPETICIONES REALES</h2><p>Explora camisas inspiradas en las principales ligas del fútbol mundial.</p><span className="league-count">{String(leagues.length - 1).padStart(2, '0')} LIGAS DISPONIBLES</span></div><div className="league-list">{leagues.filter((item) => item !== 'Todas').map((item, index) => <button key={item} onClick={() => { setLeague(item); setCategory('Todas'); window.location.hash = 'coleccion' }}><span className="league-number">0{index + 1}</span><span className="league-card-info"><strong>{item}</strong><small>{leagueCountries[item]}</small></span><ArrowRight size={19} /></button>)}</div></section>
     </main>
 
-    <footer className="footer"><a className="wordmark" href="#inicio">CANCHA <strong>90</strong></a><span>Juega. Viste. Vive.</span><div className="footer-links"><a href="#coleccion">Tienda</a><a href="#coleccion">Colección</a><a href="#inicio">Contacto</a></div><small>© 2026 CANCHA 90 AXM. Todos los derechos reservados.</small></footer>
+    <footer className="footer"><a className="wordmark" href="#inicio">CANCHA <strong>90</strong></a><span>Juega. Viste. Vive.</span><div className="footer-links"><a href="#coleccion">Tienda</a><a href="#coleccion">Colección</a><a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola CANCHA 90 AXM, quiero más información.')}`} target="_blank" rel="noreferrer">Contacto</a></div><small>© 2026 CANCHA 90 AXM. Todos los derechos reservados.</small></footer>
     {notice && <div className="toast"><Check size={17} /> {notice}</div>}
     {detailProduct && <ProductDetail product={detailProduct} onClose={() => setDetailProduct(null)} onAdd={addToCart} />}
     {drawerOpen && <CartDrawer cart={cart} cartCount={cartCount} cartTotal={cartTotal} onClose={() => setDrawerOpen(false)} onUpdate={updateQuantity} onCheckout={() => { setDrawerOpen(false); setCheckoutOpen(true) }} />}
@@ -229,14 +253,45 @@ function LeagueDropdown({ options, value, onChange }) {
 
 function ProductCard({ product, liked, onLike, onDetails }) {
   const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
-  return <article className="product-card"><div className="product-image"><button className="product-image-button" type="button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}>{product.image ? <img src={product.image} alt={`${product.type} ${product.name}`} /> : <span className="product-image-placeholder">Foto de la gorra</span>}<span className="quick-view">Ver detalles</span></button>{product.badge && <span className="badge">{product.badge}</span>}<button className={`like-button ${liked ? 'liked' : ''}`} type="button" onClick={onLike} aria-label={liked ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={liked}><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></button></div><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type}{product.stock > 0 ? ` · ${product.stock} disponibles` : ''}</p></button><button className="add-button" onClick={onDetails} disabled={!canPurchase} aria-label={`Elegir talla de ${product.name}`} title="Ver tallas y detalles"><Ruler size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong></div></div></article>
+  return <article className="product-card"><div className="product-image"><button className="product-image-button" type="button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}>{product.image ? <img src={product.image} alt={`${product.type} ${product.name}`} loading="lazy" decoding="async" /> : <span className="product-image-placeholder">Foto de la gorra</span>}<span className="quick-view">Ver detalles</span></button>{product.badge && <span className="badge">{product.badge}</span>}<button className={`like-button ${liked ? 'liked' : ''}`} type="button" onClick={onLike} aria-label={liked ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={liked}><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></button></div><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type}{product.stock > 0 ? ` · ${product.stock} disponibles` : ''}</p></button><button className="add-button" onClick={onDetails} disabled={!canPurchase} aria-label={`Elegir talla de ${product.name}`} title="Ver tallas y detalles"><Ruler size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong></div></div></article>
 }
 
 function ProductDetail({ product, onClose, onAdd }) {
   const [size, setSize] = useState('')
   const [quantity, setQuantity] = useState(1)
   const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
-  return <div className="modal-backdrop" onClick={onClose}><section className="product-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Cerrar"><X size={21} /></button><div className="detail-image">{product.image ? <img src={product.image} alt={product.name} /> : <span className="detail-image-placeholder">Foto de la gorra</span>}</div><div className="detail-copy"><p className="eyebrow red">{product.category.toUpperCase()} {product.stock > 0 ? `· ${product.stock} DISPONIBLES` : ''}</p><h2>{product.name}</h2><p className="detail-type">{product.type}</p><div className="detail-price">{product.price == null ? 'Precio pendiente' : formatPrice(product.price)} {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div><p className="detail-description">{product.description}</p>{canPurchase && <div className="detail-meta"><span><PackageCheck size={17} /> Stock disponible</span><span><Truck size={17} /> Envío nacional</span></div>}{product.sizes.length > 0 && <><div className="size-label"><strong>{product.category === 'Gorras' ? 'Ajuste' : 'Selecciona tu talla'}</strong>{product.category !== 'Gorras' && <button className="size-guide"><Ruler size={14} /> Guía de tallas</button>}</div><div className="size-row">{product.sizes.map((item) => <button className={size === item ? 'size-button active' : 'size-button'} onClick={() => setSize(item)} key={item}>{item}</button>)}</div></>}{canPurchase ? <div className="detail-actions"><div className="quantity"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus size={14} /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}><Plus size={14} /></button></div><button className="button button-lime add-detail" onClick={() => onAdd(product, size, quantity)}>Añadir al carrito <ShoppingBag size={17} /></button></div> : <p className="detail-pending">Completa foto, precio e inventario para habilitar la compra.</p>}{product.details.length > 0 && <ul className="detail-list">{product.details.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}</div></section></div>
+  const inquiryHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola CANCHA 90 AXM, me interesa ${product.name} por $45.000. Quiero confirmar el ajuste, la disponibilidad y el costo de envío.`)}`
+  return <div className="modal-backdrop" onClick={onClose}>
+    <section className={product.category === 'Gorras' ? 'product-modal product-modal-cap' : 'product-modal'} onClick={(event) => event.stopPropagation()}>
+      <button className="modal-close" onClick={onClose} aria-label="Cerrar"><X size={21} /></button>
+      <div className="detail-image">{product.image ? <img src={product.image} alt={product.name} loading="eager" decoding="async" /> : <span className="detail-image-placeholder">Foto pendiente</span>}</div>
+      <div className="detail-copy">
+        <p className="eyebrow red">{product.category.toUpperCase()} {product.category === 'Gorras' ? '· DISPONIBILIDAD POR CONFIRMAR' : product.stock > 0 ? `· ${product.stock} DISPONIBLES` : ''}</p>
+        <h2>{product.name}</h2>
+        <p className="detail-type">{product.type}</p>
+        <div className="detail-price">{product.price == null ? 'Precio pendiente' : formatPrice(product.price)} {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div>
+        <p className="detail-description">{product.description}</p>
+        {product.category === 'Gorras' ? <div className="detail-meta"><span><PackageCheck size={17} /> Existencias por confirmar</span><span><Truck size={17} /> Envíos nacionales</span></div> : canPurchase && <div className="detail-meta"><span><PackageCheck size={17} /> Stock disponible</span><span><Truck size={17} /> Envío nacional</span></div>}
+        {product.category === 'Gorras' && <div className="cap-adjustment"><strong>Ajuste / talla</strong><span>Confirmar según el modelo</span></div>}
+        {product.sizes.length > 0 && <>
+          <div className="size-label">
+            <strong>{product.category === 'Gorras' ? 'Ajuste' : 'Selecciona tu talla'}</strong>
+            {product.category !== 'Gorras' && <button className="size-guide"><Ruler size={14} /> Guía de tallas</button>}
+          </div>
+          <div className="size-row">{product.sizes.map((item) => <button className={size === item ? 'size-button active' : 'size-button'} onClick={() => setSize(item)} key={item}>{item}</button>)}</div>
+        </>}
+        {canPurchase ? <div className="detail-actions">
+          <div className="quantity">
+            <button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus size={14} /></button>
+            <span>{quantity}</span>
+            <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}><Plus size={14} /></button>
+          </div>
+          <button className="button button-lime add-detail" onClick={() => onAdd(product, size, quantity)}>Añadir al carrito <ShoppingBag size={17} /></button>
+        </div> : product.category === 'Gorras' ? <a className="button whatsapp-button full-width" href={inquiryHref} target="_blank" rel="noreferrer"><MessageCircle size={18} /> Consultar ajuste y disponibilidad</a> : <p className="detail-pending">Precio y disponibilidad por confirmar antes de la compra.</p>}
+        {product.details.length > 0 && <ul className="detail-list">{product.details.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}
+      </div>
+    </section>
+  </div>
 }
 
 function CartDrawer({ cart, cartCount, cartTotal, onClose, onUpdate, onCheckout }) {
