@@ -8,6 +8,7 @@ import psgImage from './assets/psg.png'
 import './styles.css'
 
 const WHATSAPP_NUMBER = '573136171666'
+const FREE_SHIPPING_THRESHOLD = 120000
 
 const products = [
   { id: 1, name: 'Atlético Nacional', type: 'Camisa titular', price: 65000, oldPrice: 75000, category: 'Nuevas', league: 'Liga BetPlay Dimayor', color: 'Navy', image: nacionalImage, badge: 'Nuevo', sizes: ['S', 'M', 'L', 'XL'], stock: 12, description: 'Camiseta titular inspirada en Atlético Nacional, con los colores verde y blanco del Verdolaga. Ideal para alentar al equipo dentro y fuera de la cancha.', details: ['Tela deportiva liviana', 'Cuello reforzado', 'Corte regular unisex'] },
@@ -18,19 +19,21 @@ const products = [
 
 const capProducts = Array.from({ length: 4 }, (_, index) => ({
   id: 101 + index,
-  name: 'Nombre de la gorra',
-  type: 'Descripción y disponibilidad pendientes',
-  price: 45000,
+  name: 'Nueva gorra',
+  type: 'Detalles y disponibilidad próximamente',
+  price: null,
   category: 'Gorras',
   league: 'Gorras',
   image: null,
   sizes: [],
   stock: 0,
-  description: 'Completa esta publicación con la información de la gorra.',
+  description: 'Pronto encontrarás más detalles sobre esta gorra.',
   details: [],
 }))
 const allProducts = [...products, ...capProducts]
-
+const productCategories = [...new Set(products.map((product) => product.category))]
+const categories = ['Todas', ...productCategories, ...(products.some((product) => product.oldPrice) ? ['Ofertas'] : [])]
+const navigationItems = ['Inicio', 'Camisas', 'Gorras', ...productCategories.filter((category) => category !== 'Nuevas'), ...(categories.includes('Ofertas') ? ['Ofertas'] : [])]
 const leagues = ['Todas', ...new Set(products.map((product) => product.league))]
 const leagueCountries = {
   'Liga BetPlay Dimayor': 'Colombia',
@@ -57,7 +60,7 @@ function App() {
   const [liked, setLiked] = useState(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem('cancha90-favorites') || '[]')
-      return Array.isArray(saved) ? saved : []
+      return Array.isArray(saved) ? saved.filter((id) => allProducts.some((product) => product.id === id)) : []
     } catch {
       return []
     }
@@ -88,6 +91,10 @@ function App() {
   const notify = (message) => { setNotice(message); window.setTimeout(() => setNotice(''), 2200) }
 
   const addToCart = (product, size = product.sizes[0], quantity = 1) => {
+    if (!product.sizes.includes(size)) {
+      notify('Selecciona una talla antes de agregar al carrito')
+      return
+    }
     setCart((current) => {
       const existing = current.find((item) => item.id === product.id && item.size === size)
       if (existing) return current.map((item) => item.id === product.id && item.size === size ? { ...item, quantity: Math.min(item.quantity + quantity, product.stock) } : item)
@@ -106,30 +113,31 @@ function App() {
     event.preventDefault()
     if (!cart.length) return
     const lines = cart.map((item) => `• ${item.name} | Talla ${item.size} | Cantidad: ${item.quantity} | ${formatPrice(item.price * item.quantity)}`).join('\n')
-    const message = `Hola CANCHA 90 AXM, quiero realizar este pedido:\n\n${lines}\n\nTotal productos: ${formatPrice(cartTotal)}\n\nDatos de entrega:\nNombre: ${customer.name}\nTeléfono: ${customer.phone}\nCiudad: ${customer.city}\nDirección: ${customer.address}\nNotas: ${customer.notes || 'Sin notas'}\n\nQuedo atento(a) para confirmar disponibilidad, envío y forma de pago.`
+    const shippingMessage = cartTotal >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis aplicable desde $120.000.' : 'Costo de envío por confirmar según ciudad.'
+    const message = `Hola CANCHA 90 AXM, quiero realizar este pedido:\n\n${lines}\n\nTotal productos: ${formatPrice(cartTotal)}\n${shippingMessage}\n\nDatos de entrega:\nNombre: ${customer.name}\nTeléfono: ${customer.phone}\nCiudad: ${customer.city}\nDirección: ${customer.address}\nNotas: ${customer.notes || 'Sin notas'}\n\nPor favor confirmen disponibilidad, envío y medios de pago antes de realizar el pago.`
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
     notify('Pedido preparado. WhatsApp se abrirá en una nueva pestaña.')
   }
 
   return <div className="site-shell">
-    <div className="announcement"><span>Envíos gratis desde $120.000</span><span className="announcement-dot">•</span><span>Compra segura en cada jugada</span></div>
+    <div className="announcement"><span>Envíos gratis desde $120.000</span><span className="announcement-dot">•</span><span>Envío y pago se confirman por WhatsApp</span></div>
     <header className="header">
       <button className="icon-button mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"><Menu size={22} /></button>
       <a className="wordmark" href="#inicio" aria-label="CANCHA 90 AXM inicio">CANCHA <strong>90</strong></a>
-      <nav className={`nav ${menuOpen ? 'nav-open' : ''}`}>{['Inicio', 'Camisas', 'Gorras', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <a href={item === 'Inicio' ? '#inicio' : item === 'Gorras' ? '#gorras' : '#coleccion'} key={item} onClick={() => { setMenuOpen(false); if (item === 'Camisas') setCategory('Todas'); if (['Retro', 'Selecciones', 'Ofertas'].includes(item)) setCategory(item) }}>{item}</a>)}</nav>
+      <nav className={`nav ${menuOpen ? 'nav-open' : ''}`}>{navigationItems.map((item) => <a href={item === 'Inicio' ? '#inicio' : item === 'Gorras' ? '#gorras' : '#coleccion'} key={item} onClick={() => { setMenuOpen(false); if (item === 'Camisas') { setCategory('Todas'); setLeague('Todas') } else if (item !== 'Inicio' && item !== 'Gorras') { setCategory(item); setLeague('Todas') } }}>{item}</a>)}</nav>
       <div className="header-actions"><button className="icon-button favorites-button" onClick={() => setFavoritesOpen(true)} aria-label={`Ver favoritos (${liked.length})`}><Heart size={19} />{liked.length > 0 && <span className="favorites-count">{liked.length}</span>}</button><button className="bag-button" onClick={() => setDrawerOpen(true)} aria-label="Abrir carrito"><ShoppingBag size={20} /><span>{cartCount}</span></button></div>
     </header>
 
     <main>
-      <section className="hero" id="inicio"><div className="hero-copy"><p className="eyebrow red">CAMISAS · GORRAS · ACCESORIOS</p><h1>VISTE TU <span>PASIÓN</span></h1><p className="hero-text">Camisas, gorras y accesorios futboleros para llevar tu pasión dentro y fuera de la cancha.</p><div className="hero-cta"><a className="button button-lime" href="#coleccion">Ver colección <ArrowRight size={18} /></a><a className="text-link" href="#coleccion">Explorar colección <ArrowRight size={15} /></a></div></div><div className="hero-notes"><span>MISMA<br />PASIÓN</span><span>NUEVAS<br />HISTORIAS</span></div><div className="hero-bottom"><div><Truck size={21} /><span><b>Envíos a todo el país</b><small>Rápidos y seguros</small></span></div><div><CreditCard size={21} /><span><b>Pagos coordinados</b><small>Directo por WhatsApp</small></span></div><div><ShieldCheck size={21} /><span><b>Compra protegida</b><small>Atención personalizada</small></span></div></div></section>
+      <section className="hero" id="inicio"><div className="hero-copy"><p className="eyebrow red">CAMISAS DE FÚTBOL</p><h1>VISTE TU <span>PASIÓN</span></h1><p className="hero-text">Camisas de tus equipos y ligas favoritas para llevar tu pasión dentro y fuera de la cancha.</p><div className="hero-cta"><a className="button button-lime" href="#coleccion">Ver colección <ArrowRight size={18} /></a><a className="text-link" href="#coleccion">Explorar colección <ArrowRight size={15} /></a></div></div><div className="hero-notes"><span>MISMA<br />PASIÓN</span><span>NUEVAS<br />HISTORIAS</span></div><div className="hero-bottom"><div><Truck size={21} /><span><b>Envíos a todo el país</b><small>Rápidos y seguros</small></span></div><div><CreditCard size={21} /><span><b>Pagos coordinados</b><small>Directo por WhatsApp</small></span></div><div><ShieldCheck size={21} /><span><b>Confirmación antes del pago</b><small>Disponibilidad por WhatsApp</small></span></div></div></section>
 
       <section className="collection-section" id="coleccion">
         <div className="section-heading">
-          <div><p className="eyebrow red">TODA LA COLECCIÓN</p><h2>CAMISAS Y SELECCIONES</h2></div>
+          <div><p className="eyebrow red">TODA LA COLECCIÓN</p><h2>CAMISAS DE CLUBES</h2></div>
           <a href="#coleccion" className="view-all">Ver todas <ArrowRight size={15} /></a>
         </div>
         <div className="catalog-toolbar">
-          <div className="category-row">{['Todas', 'Nuevas', 'Retro', 'Selecciones', 'Ofertas'].map((item) => <button className={category === item ? 'category active' : 'category'} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
+          <div className="category-row">{categories.map((item) => <button className={category === item ? 'category active' : 'category'} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
           <div className="catalog-filters">
             <div className="league-filter">
               <span id="league-filter-label">Liga</span>
@@ -143,10 +151,16 @@ function App() {
         </div>
       </section>
 
-      <section className="caps-section" id="gorras"><div className="caps-heading"><p className="eyebrow lime">NUEVA CATEGORÍA</p><h2>GORRAS</h2></div><div className="cap-template-grid">{capProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} onAdd={() => addToCart(product)} />)}</div></section>
+      <section className="caps-section" id="gorras">
+        <div className="caps-heading">
+          <p className="eyebrow lime">PRÓXIMAMENTE</p>
+          <h2>GORRAS</h2>
+        </div>
+        <div className="cap-template-grid">{capProducts.map((product) => <ProductCard key={product.id} product={product} liked={liked.includes(product.id)} onLike={() => setLiked((current) => current.includes(product.id) ? current.filter((item) => item !== product.id) : [...current, product.id])} onDetails={() => setDetailProduct(product)} />)}</div>
+      </section>
 
-      <section className="trust-section"><div><Truck size={25} /><strong>Envíos a todo el país</strong><span>Rápidos y seguros</span></div><div><CreditCard size={25} /><strong>Pagos coordinados</strong><span>Te atendemos por WhatsApp</span></div><div><ShieldCheck size={25} /><strong>Compra segura</strong><span>Tus datos protegidos</span></div></section>
-      <section className="league-showcase"><div className="league-showcase-copy"><p className="eyebrow red">ELIGE TU LIGA</p><h2>COMPETICIONES REALES</h2><p>Explora camisas inspiradas en las principales ligas del fútbol mundial.</p><span className="league-count">08 LIGAS DISPONIBLES</span></div><div className="league-list">{leagues.filter((item) => item !== 'Todas').map((item, index) => <button key={item} onClick={() => { setLeague(item); setCategory('Todas'); window.location.hash = 'coleccion' }}><span className="league-number">0{index + 1}</span><span className="league-card-info"><strong>{item}</strong><small>{leagueCountries[item]}</small></span><ArrowRight size={19} /></button>)}</div></section>
+      <section className="trust-section"><div><Truck size={25} /><strong>Envíos a todo el país</strong><span>El costo se confirma según ciudad</span></div><div><CreditCard size={25} /><strong>Medios de pago coordinados</strong><span>Se confirman por WhatsApp</span></div><div><ShieldCheck size={25} /><strong>Confirmación antes del pago</strong><span>Sin cobros en esta página</span></div></section>
+      <section className="league-showcase"><div className="league-showcase-copy"><p className="eyebrow red">ELIGE TU LIGA</p><h2>COMPETICIONES REALES</h2><p>Explora camisas inspiradas en las principales ligas del fútbol mundial.</p><span className="league-count">{String(leagues.length - 1).padStart(2, '0')} LIGAS DISPONIBLES</span></div><div className="league-list">{leagues.filter((item) => item !== 'Todas').map((item, index) => <button key={item} onClick={() => { setLeague(item); setCategory('Todas'); window.location.hash = 'coleccion' }}><span className="league-number">0{index + 1}</span><span className="league-card-info"><strong>{item}</strong><small>{leagueCountries[item]}</small></span><ArrowRight size={19} /></button>)}</div></section>
     </main>
 
     <footer className="footer"><a className="wordmark" href="#inicio">CANCHA <strong>90</strong></a><span>Juega. Viste. Vive.</span><div className="footer-links"><a href="#coleccion">Tienda</a><a href="#coleccion">Colección</a><a href="#inicio">Contacto</a></div><small>© 2026 CANCHA 90 AXM. Todos los derechos reservados.</small></footer>
@@ -213,20 +227,20 @@ function LeagueDropdown({ options, value, onChange }) {
   </div>
 }
 
-function ProductCard({ product, liked, onLike, onDetails, onAdd }) {
+function ProductCard({ product, liked, onLike, onDetails }) {
   const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
-  return <article className="product-card"><div className="product-image"><button className="product-image-button" type="button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}>{product.image ? <img src={product.image} alt={`${product.type} ${product.name}`} /> : <span className="product-image-placeholder">Foto de la gorra</span>}<span className="quick-view">Ver detalles</span></button>{product.badge && <span className="badge">{product.badge}</span>}<button className={`like-button ${liked ? 'liked' : ''}`} type="button" onClick={onLike} aria-label={liked ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={liked}><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></button></div><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type}{product.stock > 0 ? ` · ${product.stock} disponibles` : ''}</p></button><button className="add-button" onClick={onAdd} disabled={!canPurchase} aria-label={`Añadir ${product.name}`}><Plus size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong></div></div></article>
+  return <article className="product-card"><div className="product-image"><button className="product-image-button" type="button" onClick={onDetails} aria-label={`Ver detalles de ${product.name}`}>{product.image ? <img src={product.image} alt={`${product.type} ${product.name}`} /> : <span className="product-image-placeholder">Foto de la gorra</span>}<span className="quick-view">Ver detalles</span></button>{product.badge && <span className="badge">{product.badge}</span>}<button className={`like-button ${liked ? 'liked' : ''}`} type="button" onClick={onLike} aria-label={liked ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={liked}><Heart size={17} fill={liked ? 'currentColor' : 'none'} /></button></div><div className="product-info"><button className="product-name-button" onClick={onDetails}><h3>{product.name}</h3><div className="product-taxonomy"><span>{product.league}</span></div><p>{product.type}{product.stock > 0 ? ` · ${product.stock} disponibles` : ''}</p></button><button className="add-button" onClick={onDetails} disabled={!canPurchase} aria-label={`Elegir talla de ${product.name}`} title="Ver tallas y detalles"><Ruler size={19} /></button><div className="product-price">{product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}<strong>{product.price == null ? 'Precio pendiente' : formatPrice(product.price)}</strong></div></div></article>
 }
 
 function ProductDetail({ product, onClose, onAdd }) {
-  const [size, setSize] = useState(product.sizes[0] ?? '')
+  const [size, setSize] = useState('')
   const [quantity, setQuantity] = useState(1)
   const canPurchase = product.price != null && product.stock > 0 && product.sizes.length > 0
   return <div className="modal-backdrop" onClick={onClose}><section className="product-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={onClose} aria-label="Cerrar"><X size={21} /></button><div className="detail-image">{product.image ? <img src={product.image} alt={product.name} /> : <span className="detail-image-placeholder">Foto de la gorra</span>}</div><div className="detail-copy"><p className="eyebrow red">{product.category.toUpperCase()} {product.stock > 0 ? `· ${product.stock} DISPONIBLES` : ''}</p><h2>{product.name}</h2><p className="detail-type">{product.type}</p><div className="detail-price">{product.price == null ? 'Precio pendiente' : formatPrice(product.price)} {product.oldPrice && <del>{formatPrice(product.oldPrice)}</del>}</div><p className="detail-description">{product.description}</p>{canPurchase && <div className="detail-meta"><span><PackageCheck size={17} /> Stock disponible</span><span><Truck size={17} /> Envío nacional</span></div>}{product.sizes.length > 0 && <><div className="size-label"><strong>{product.category === 'Gorras' ? 'Ajuste' : 'Selecciona tu talla'}</strong>{product.category !== 'Gorras' && <button className="size-guide"><Ruler size={14} /> Guía de tallas</button>}</div><div className="size-row">{product.sizes.map((item) => <button className={size === item ? 'size-button active' : 'size-button'} onClick={() => setSize(item)} key={item}>{item}</button>)}</div></>}{canPurchase ? <div className="detail-actions"><div className="quantity"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Minus size={14} /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}><Plus size={14} /></button></div><button className="button button-lime add-detail" onClick={() => onAdd(product, size, quantity)}>Añadir al carrito <ShoppingBag size={17} /></button></div> : <p className="detail-pending">Completa foto, precio e inventario para habilitar la compra.</p>}{product.details.length > 0 && <ul className="detail-list">{product.details.map((item) => <li key={item}><Check size={14} />{item}</li>)}</ul>}</div></section></div>
 }
 
 function CartDrawer({ cart, cartCount, cartTotal, onClose, onUpdate, onCheckout }) {
-  return <div className="drawer-backdrop" onClick={onClose}><aside className="cart-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-head"><div><p className="eyebrow lime">TU SELECCIÓN</p><h2>Carrito <span>({cartCount})</span></h2></div><button className="icon-button" onClick={onClose}><X size={21} /></button></div>{cart.length === 0 ? <div className="empty-cart"><ShoppingBag size={30} /><h3>Tu carrito está esperando</h3><p>Agrega una camisa y arma tu próxima jugada.</p><button className="button button-lime" onClick={onClose}>Seguir comprando</button></div> : <><div className="cart-items">{cart.map((item) => <div className="cart-item" key={`${item.id}-${item.size}`}><img src={item.image} alt={item.name} /><div><h3>{item.name}</h3><p>{item.type} · Talla {item.size}</p><strong>{formatPrice(item.price * item.quantity)}</strong><div className="quantity"><button onClick={() => onUpdate(item.id, item.size, -1)}><Minus size={13} /></button><span>{item.quantity}</span><button onClick={() => onUpdate(item.id, item.size, 1)}><Plus size={13} /></button></div></div></div>)}</div><div className="cart-summary"><div><span>Subtotal</span><strong>{formatPrice(cartTotal)}</strong></div><small>El envío y la forma de pago se coordinan por WhatsApp.</small><button className="button button-lime full-width" onClick={onCheckout}><MessageCircle size={17} /> Finalizar por WhatsApp</button></div></>}</aside></div>
+  return <div className="drawer-backdrop" onClick={onClose}><aside className="cart-drawer" onClick={(event) => event.stopPropagation()}><div className="drawer-head"><div><p className="eyebrow lime">TU SELECCIÓN</p><h2>Carrito <span>({cartCount})</span></h2></div><button className="icon-button" onClick={onClose}><X size={21} /></button></div>{cart.length === 0 ? <div className="empty-cart"><ShoppingBag size={30} /><h3>Tu carrito está esperando</h3><p>Agrega una camisa y arma tu próxima jugada.</p><button className="button button-lime" onClick={onClose}>Seguir comprando</button></div> : <><div className="cart-items">{cart.map((item) => <div className="cart-item" key={`${item.id}-${item.size}`}><img src={item.image} alt={item.name} /><div><h3>{item.name}</h3><p>{item.type} · Talla {item.size}</p><strong>{formatPrice(item.price * item.quantity)}</strong><div className="quantity"><button onClick={() => onUpdate(item.id, item.size, -1)}><Minus size={13} /></button><span>{item.quantity}</span><button onClick={() => onUpdate(item.id, item.size, 1)}><Plus size={13} /></button></div></div></div>)}</div><div className="cart-summary"><div><span>Subtotal productos</span><strong>{formatPrice(cartTotal)}</strong></div><div><span>Envío</span><strong>{cartTotal >= FREE_SHIPPING_THRESHOLD ? 'Gratis' : 'Por confirmar'}</strong></div><small>{cartTotal >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis desde $120.000. ' : 'Costo según ciudad. '}El medio de pago se confirma por WhatsApp antes de comprar.</small><button className="button button-lime full-width" onClick={onCheckout}><MessageCircle size={17} /> Finalizar por WhatsApp</button></div></>}</aside></div>
 }
 
 function FavoritesDrawer({ products, onClose, onRemove, onDetails }) {
@@ -235,7 +249,49 @@ function FavoritesDrawer({ products, onClose, onRemove, onDetails }) {
 
 function CheckoutModal({ customer, setCustomer, cart, cartTotal, onClose, onSubmit }) {
   const setField = (field, value) => setCustomer((current) => ({ ...current, [field]: value }))
-  return <div className="modal-backdrop" onClick={onClose}><section className="checkout-modal" onClick={(event) => event.stopPropagation()}><div className="checkout-head"><div><p className="eyebrow lime">ÚLTIMO PASO</p><h2>Finaliza tu pedido</h2><p>Completa tus datos y te llevaremos a WhatsApp para confirmar disponibilidad, envío y pago.</p></div><button className="modal-close" onClick={onClose}><X size={21} /></button></div><div className="checkout-layout"><form className="checkout-form" onSubmit={onSubmit}><label>Nombre completo<input value={customer.name} onChange={(event) => setField('name', event.target.value)} placeholder="Ej. Juan Pérez" required /></label><div className="form-row"><label>Teléfono<input value={customer.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="300 000 0000" required /></label><label>Ciudad<input value={customer.city} onChange={(event) => setField('city', event.target.value)} placeholder="Bogotá" required /></label></div><label>Dirección de entrega<input value={customer.address} onChange={(event) => setField('address', event.target.value)} placeholder="Calle, carrera, número y barrio" required /></label><label>Notas del pedido <span className="optional">(opcional)</span><textarea value={customer.notes} onChange={(event) => setField('notes', event.target.value)} placeholder="Talla especial, indicaciones de entrega..." rows="3" /></label><button className="button whatsapp-button" type="submit"><MessageCircle size={18} /> Enviar pedido a WhatsApp</button></form><aside className="checkout-summary"><p className="eyebrow red">RESUMEN</p>{cart.map((item) => <div className="checkout-product" key={`${item.id}-${item.size}`}><img src={item.image} alt={item.name} /><div><strong>{item.name}</strong><span>Talla {item.size} · Cant. {item.quantity}</span></div><b>{formatPrice(item.price * item.quantity)}</b></div>)}<div className="checkout-total"><span>Total productos</span><strong>{formatPrice(cartTotal)}</strong></div><small><ShieldCheck size={14} /> No solicitamos datos de tarjeta en esta página.</small></aside></div></section></div>
+  return <div className="modal-backdrop" onClick={onClose}>
+    <section className="checkout-modal" onClick={(event) => event.stopPropagation()}>
+      <div className="checkout-head">
+        <div>
+          <p className="eyebrow lime">ÚLTIMO PASO</p>
+          <h2>Finaliza tu pedido</h2>
+          <p>Completa tus datos y te llevaremos a WhatsApp para confirmar disponibilidad, envío y pago.</p>
+        </div>
+        <button className="modal-close" onClick={onClose} aria-label="Cerrar">
+          <X size={21} />
+        </button>
+      </div>
+      <div className="checkout-layout">
+        <form className="checkout-form" onSubmit={onSubmit}>
+          <label>Nombre completo<input value={customer.name} onChange={(event) => setField('name', event.target.value)} placeholder="Ej. Juan Pérez" required /></label>
+          <div className="form-row">
+            <label>Teléfono<input value={customer.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="300 000 0000" required /></label>
+            <label>Ciudad<input value={customer.city} onChange={(event) => setField('city', event.target.value)} placeholder="Bogotá" required /></label>
+          </div>
+          <label>Dirección de entrega<input value={customer.address} onChange={(event) => setField('address', event.target.value)} placeholder="Calle, carrera, número y barrio" required /></label>
+          <label>Notas del pedido <span className="optional">(opcional)</span><textarea value={customer.notes} onChange={(event) => setField('notes', event.target.value)} placeholder="Talla especial, indicaciones de entrega..." rows="3" /></label>
+          <button className="button whatsapp-button" type="submit"><MessageCircle size={18} /> Enviar pedido a WhatsApp</button>
+        </form>
+        <aside className="checkout-summary">
+          <p className="eyebrow red">RESUMEN</p>
+          {cart.map((item) => <div className="checkout-product" key={`${item.id}-${item.size}`}>
+            <img src={item.image} alt={item.name} />
+            <div><strong>{item.name}</strong><span>Talla {item.size} · Cant. {item.quantity}</span></div>
+            <b>{formatPrice(item.price * item.quantity)}</b>
+          </div>)}
+          <div className="checkout-total">
+            <span>Total productos</span>
+            <strong>{formatPrice(cartTotal)}</strong>
+          </div>
+          <div className="checkout-shipping">
+            <span>Envío</span>
+            <strong>{cartTotal >= FREE_SHIPPING_THRESHOLD ? 'Gratis' : 'Por confirmar según ciudad'}</strong>
+          </div>
+          <small>Disponibilidad, medio de pago y costo final se confirman contigo por WhatsApp antes de pagar. No se realiza ningún cobro en esta página.</small>
+        </aside>
+      </div>
+    </section>
+  </div>
 }
 
 createRoot(document.getElementById('root')).render(<App />)

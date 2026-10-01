@@ -1002,6 +1002,9 @@ p {
   .header-actions .icon-button {
     display: none;
   }
+  .header-actions .favorites-button {
+    display: grid;
+  }
   .search-button {
     display: none;
   }
@@ -1345,6 +1348,7 @@ p {
   margin-bottom: 10px;
 }
 .size-guide {
+  position: relative;
   border: 0;
   background: transparent;
   color: var(--steel);
@@ -1352,6 +1356,23 @@ p {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+.size-guide:hover::after,
+.size-guide:focus::after {
+  content: "Mide el ancho y largo de una camiseta que te quede bien. Las medidas exactas de cada modelo se confirman por WhatsApp.";
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(240px, 70vw);
+  padding: 10px 12px;
+  background: var(--navy);
+  color: var(--ivory);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
 }
 .size-row {
   display: flex;
@@ -1508,6 +1529,16 @@ p {
   justify-content: space-between;
   padding: 18px 0;
   font-size: 13px;
+}
+.checkout-shipping {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 0 16px;
+  font-size: 12px;
+}
+.checkout-shipping strong {
+  text-align: right;
 }
 .checkout-summary > small {
   display: flex;
